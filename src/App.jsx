@@ -12,7 +12,6 @@ import { BrowserRouter, NavLink } from "react-router-dom";
 
 import Navbar from "./Components/Navbar";
 import Bisection from "./pages/Standard/Bisection";
-import ResponsiveDrawer from "./pages/Standard/Temp";
 
 function App() {
 
