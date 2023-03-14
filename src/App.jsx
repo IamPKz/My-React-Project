@@ -5,7 +5,7 @@ import "./App.css";
 import {
   Box,
 } from "@mui/material";
-import { BrowserRouter, NavLink } from "react-router-dom";
+import { BrowserRouter} from "react-router-dom";
 
 import Navbar from "./Components/Navbar";
 import Bisection from "./pages/Standard/Bisection";
