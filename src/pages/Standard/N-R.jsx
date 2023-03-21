@@ -22,18 +22,16 @@ import { TableVirtuoso } from "react-virtuoso";
 import { evaluate } from "mathjs";
 import Plot from "react-plotly.js";
 
-const Bisection = () => {
+
+const One_Point = () => {
   const data = [];
   const [valueIter, setValueIter] = useState([]);
-  const [valueXl, setValueXl] = useState([]);
-  const [valueXm, setValueXm] = useState([]);
-  const [valueXr, setValueXr] = useState([]);
+  const [valueX, setValueX] = useState([]);
 
   const [html, setHtml] = useState(null);
   const [Equation, setEquation] = useState("(x^4)-13");
   const [X, setX] = useState(0);
-  const [XL, setXL] = useState(0);
-  const [XR, setXR] = useState(0);
+
 
   const columns = [
     {
@@ -43,22 +41,10 @@ const Bisection = () => {
     },
     {
       width: 120,
-      label: "XL",
-      dataKey: "Xl",
+      label: "X",
+      dataKey: "X",
       numeric: true,
-    },
-    {
-      width: 120,
-      label: "XM",
-      dataKey: "Xm",
-      numeric: true,
-    },
-    {
-      width: 120,
-      label: "XR",
-      dataKey: "Xr",
-      numeric: true,
-    },
+    }
   ];
 
   const VirtuosoTableComponents = {
@@ -114,16 +100,6 @@ const Bisection = () => {
   const print = () => {
     console.log(data);
 
-    setValueIter(data.map((x) => x.iteration));
-    setValueXl(data.map((x) => x.Xl));
-    setValueXm(data.map((x) => x.Xm));
-    setValueXr(data.map((x) => x.Xr));
-
-    console.log(valueIter);
-    console.log(valueXl);
-    console.log(valueXm);
-    console.log(valueXr);
-
     return (
       <Container>
         <Paper style={{ height: 400, width: "100%" }}>
@@ -140,7 +116,7 @@ const Bisection = () => {
               data={[
                 {
                   x: data.map((x) => x.iteration),
-                  y: data.map((x) => x.Xm),
+                  y: data.map((x) => x.X),
                   type: "scattergl",
                   marker: { color: "red" },
                 },
@@ -160,7 +136,7 @@ const Bisection = () => {
                 },
                 yaxis: {
                   title: {
-                    text: "XM values",
+                    text: "X",
                     font: {
                       family: "Courier New, monospace",
                       size: 18,
@@ -189,53 +165,30 @@ const Bisection = () => {
 
   const error = (xold, xnew) => Math.abs((xnew - xold) / xnew) * 100;
 
-  const Calbisection = (xl, xr) => {
-    var xm, fXm, fXr, ea, scope;
+  const Calbisection = (x_now) => {
+    var ea,x_before;
     var iter = 0;
     var MAX = 4;
     const e = 0.00001;
     var obj = {};
     do {
-      xm = (xl + xr) / 2.0;
-      scope = {
-        x: xr,
-      };
-      fXr = evaluate(Equation, scope);
+        x_before = x_now;
+        x_now = evaluate(Equation,{x:x_before});
+        ea = error(x_before,x_now);
+        iter++;
 
-      scope = {
-        x: xm,
-      };
-      fXm = evaluate(Equation, scope);
-
-      iter++;
-      if (fXm * fXr > 0) {
-        ea = error(xr, xm);
         obj = {
-          iteration: iter,
-          Xl: xl,
-          Xm: xm,
-          Xr: xr,
-        };
-        data.push(obj);
-        xr = xm;
-      } else if (fXm * fXr < 0) {
-        ea = error(xl, xm);
-        obj = {
-          iteration: iter,
-          Xl: xl,
-          Xm: xm,
-          Xr: xr,
-        };
-        data.push(obj);
-        xl = xm;
-      }
+            iteration: iter,
+            X: x_now,
+          };
+          data.push(obj);
+      
     } while (ea > e && iter < MAX);
 
-    setX(xm);
+    setX(x_now);
     setValueIter(data.map((x) => x.iteration));
-    setValueXl(data.map((x) => x.Xl));
-    setValueXm(data.map((x) => x.Xm));
-    setValueXr(data.map((x) => x.Xr));
+    setValueX(data.map((x) => x.X));
+
   };
 
   const inputEquation = (event) => {
@@ -243,26 +196,20 @@ const Bisection = () => {
     setEquation(event.target.value);
   };
 
-  const inputXL = (event) => {
+  const inputX = (event) => {
     console.log(event.target.value);
-    setXL(event.target.value);
-  };
-
-  const inputXR = (event) => {
-    console.log(event.target.value);
-    setXR(event.target.value);
+    setValueX(event.target.value);
   };
 
   const calculateRoot = () => {
-    const xlnum = parseFloat(XL);
-    const xrnum = parseFloat(XR);
-    Calbisection(xlnum, xrnum);
+    const xnum = parseFloat(X);
+    Calbisection(xnum);
 
     setHtml(print());
 
     console.log(valueIter);
-    console.log(valueXl);
-    
+    console.log(valueX);
+
     setX(0);
   };
 
@@ -279,7 +226,7 @@ const Bisection = () => {
         variant="h6"
         sx={{ display: "flex", justifyContent: "center", color: " #000" }}
       >
-        Bisection Medthod
+        False-Position Medthod
       </Typography>
       <Box
         sx={{
@@ -301,16 +248,10 @@ const Bisection = () => {
         />
         <TextField
           type="number"
-          label="XL"
+          value={valueX}
+          label="X"
           variant="outlined"
-          onChange={inputXL}
-          required
-        />
-        <TextField
-          type="number"
-          label="XR"
-          variant="outlined"
-          onChange={inputXR}
+          onChange={inputX}
           required
         />
       </Box>
@@ -330,4 +271,4 @@ const Bisection = () => {
   );
 };
 
-export default Bisection;
+export default One_Point;

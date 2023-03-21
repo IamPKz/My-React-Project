@@ -22,7 +22,7 @@ import { TableVirtuoso } from "react-virtuoso";
 import { evaluate } from "mathjs";
 import Plot from "react-plotly.js";
 
-const Bisection = () => {
+const False_Position = () => {
   const data = [];
   const [valueIter, setValueIter] = useState([]);
   const [valueXl, setValueXl] = useState([]);
@@ -111,6 +111,12 @@ const Bisection = () => {
     );
   }
 
+  function cal(x){
+    let fx = 1/2-x
+    return fx
+
+}
+
   const print = () => {
     console.log(data);
 
@@ -196,7 +202,7 @@ const Bisection = () => {
     const e = 0.00001;
     var obj = {};
     do {
-      xm = (xl + xr) / 2.0;
+      xm = ((xl*evaluate(Equation,{x:xr}))-(xr*evaluate(Equation,{x:xl}))) / (evaluate(Equation,{x:xr}) - evaluate(Equation,{x:xl}))
       scope = {
         x: xr,
       };
@@ -262,7 +268,7 @@ const Bisection = () => {
 
     console.log(valueIter);
     console.log(valueXl);
-    
+
     setX(0);
   };
 
@@ -279,7 +285,7 @@ const Bisection = () => {
         variant="h6"
         sx={{ display: "flex", justifyContent: "center", color: " #000" }}
       >
-        Bisection Medthod
+        False-Position Medthod
       </Typography>
       <Box
         sx={{
@@ -330,4 +336,4 @@ const Bisection = () => {
   );
 };
 
-export default Bisection;
+export default False_Position;

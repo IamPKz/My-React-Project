@@ -12,7 +12,7 @@ import {
   Divider,
 } from "@mui/material";
 
-const List_Method = ["Bi", "False_Po", "Graphical", "Newton", "One_Point"];
+const List_Method = ["Bisection", "False_Position", "Newton", "One_Point"];
 
 const List_Technical = [
   "Cremer",

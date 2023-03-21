@@ -19,7 +19,7 @@ function Navbar() {
   };
 
   return (
-    <AppBar>
+    <AppBar position="static">
       <Toolbar>
         <IconButton onClick={toggleSlider}>
           <Menu sx={{ color:"#fff" ,padding: 1 }}/>
