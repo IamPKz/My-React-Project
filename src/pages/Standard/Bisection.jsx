@@ -1,4 +1,5 @@
-import { React, useState, forwardRef, Fragment } from "react";
+import { React, useState, useEffect, forwardRef, Fragment } from "react";
+import axios from "axios";
 import {
   Container,
   TextField,
@@ -23,6 +24,7 @@ import { evaluate } from "mathjs";
 import Plot from "react-plotly.js";
 
 const Bisection = () => {
+  const [api, setApi] = useState({});
   const data = [];
   const [valueIter, setValueIter] = useState([]);
   const [valueXl, setValueXl] = useState([]);
@@ -111,6 +113,19 @@ const Bisection = () => {
     );
   }
 
+  const fetchData = () => {
+    axios
+      .get("http://localhost:3000/api/objects/random")
+      .then((response) => {
+        setApi(response.data);
+      })
+      .then(setEquation(api.function))
+      .then(setXL(api.interval[0]))
+      .then(setXR(api.interval[1]))
+      .catch((error) => console.error(error));
+    console.log(api);
+  };
+
   const print = () => {
     console.log(data);
 
@@ -192,11 +207,12 @@ const Bisection = () => {
   const Calbisection = (xl, xr) => {
     var xm, fXm, fXr, ea, scope;
     var iter = 0;
-    var MAX = 4;
+    var MAX = 100;
     const e = 0.00001;
     var obj = {};
     do {
       xm = (xl + xr) / 2.0;
+      console.log("this is x" + xm);
       scope = {
         x: xr,
       };
@@ -254,6 +270,7 @@ const Bisection = () => {
   };
 
   const calculateRoot = () => {
+    setX(0);
     const xlnum = parseFloat(XL);
     const xrnum = parseFloat(XR);
     Calbisection(xlnum, xrnum);
@@ -262,8 +279,6 @@ const Bisection = () => {
 
     console.log(valueIter);
     console.log(valueXl);
-    
-    setX(0);
   };
 
   return (
@@ -301,6 +316,7 @@ const Bisection = () => {
         />
         <TextField
           type="number"
+          value={XL}
           label="XL"
           variant="outlined"
           onChange={inputXL}
@@ -309,6 +325,7 @@ const Bisection = () => {
         <TextField
           type="number"
           label="XR"
+          value={XR}
           variant="outlined"
           onChange={inputXR}
           required
@@ -317,6 +334,9 @@ const Bisection = () => {
       <Box padding={3} sx={{ display: "flex", justifyContent: "center" }}>
         <Button variant="contained" onClick={calculateRoot}>
           Calculate
+        </Button>
+        <Button variant="contained" onClick={fetchData}>
+          Random
         </Button>
       </Box>
       <Typography

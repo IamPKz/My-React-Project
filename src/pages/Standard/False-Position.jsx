@@ -1,4 +1,6 @@
 import { React, useState, forwardRef, Fragment } from "react";
+import axios from "axios";
+
 import {
   Container,
   TextField,
@@ -23,6 +25,7 @@ import { evaluate } from "mathjs";
 import Plot from "react-plotly.js";
 
 const False_Position = () => {
+  const [api, setApi] = useState({});
   const data = [];
   const [valueIter, setValueIter] = useState([]);
   const [valueXl, setValueXl] = useState([]);
@@ -34,6 +37,19 @@ const False_Position = () => {
   const [X, setX] = useState(0);
   const [XL, setXL] = useState(0);
   const [XR, setXR] = useState(0);
+
+  const fetchData = () => {
+    axios
+      .get("http://localhost:3000/api/objects/random")
+      .then((response) => {
+        setApi(response.data);
+      })
+      .then(setEquation(api.function))
+      .then(setXL(api.interval[0]))
+      .then(setXR(api.interval[1]))
+      .catch((error) => console.error(error));
+    console.log(api);
+  };
 
   const columns = [
     {
@@ -260,6 +276,8 @@ const False_Position = () => {
   };
 
   const calculateRoot = () => {
+    
+    setX(0);
     const xlnum = parseFloat(XL);
     const xrnum = parseFloat(XR);
     Calbisection(xlnum, xrnum);
@@ -269,7 +287,6 @@ const False_Position = () => {
     console.log(valueIter);
     console.log(valueXl);
 
-    setX(0);
   };
 
   return (
@@ -307,6 +324,7 @@ const False_Position = () => {
         />
         <TextField
           type="number"
+          value={XL}
           label="XL"
           variant="outlined"
           onChange={inputXL}
@@ -314,6 +332,7 @@ const False_Position = () => {
         />
         <TextField
           type="number"
+          value={XR}
           label="XR"
           variant="outlined"
           onChange={inputXR}
@@ -323,6 +342,9 @@ const False_Position = () => {
       <Box padding={3} sx={{ display: "flex", justifyContent: "center" }}>
         <Button variant="contained" onClick={calculateRoot}>
           Calculate
+        </Button>
+        <Button variant="contained" onClick={fetchData}>
+          Random
         </Button>
       </Box>
       <Typography

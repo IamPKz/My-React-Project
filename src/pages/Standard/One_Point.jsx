@@ -1,4 +1,6 @@
 import { React, useState, forwardRef, Fragment } from "react";
+import axios from "axios";
+
 import {
   Container,
   TextField,
@@ -24,6 +26,8 @@ import Plot from "react-plotly.js";
 
 
 const One_Point = () => {
+
+  const [api, setApi] = useState({});
   const data = [];
   const [valueIter, setValueIter] = useState([]);
   const [valueX, setValueX] = useState([]);
@@ -31,6 +35,18 @@ const One_Point = () => {
   const [html, setHtml] = useState(null);
   const [Equation, setEquation] = useState("(x^4)-13");
   const [X, setX] = useState(0);
+
+  const fetchData = () => {
+    axios
+      .get("http://localhost:3000/api/objects/random")
+      .then((response) => {
+        setApi(response.data);
+      })
+      .then(setEquation(api.function))
+      .then(setValueX(api.interval[1]))
+      .catch((error) => console.error(error));
+    console.log(api);
+  };
 
 
   const columns = [
@@ -202,6 +218,7 @@ const One_Point = () => {
   };
 
   const calculateRoot = () => {
+    setX(0);
     const xnum = parseFloat(X);
     Calbisection(xnum);
 
@@ -210,7 +227,6 @@ const One_Point = () => {
     console.log(valueIter);
     console.log(valueX);
 
-    setX(0);
   };
 
   return (
@@ -258,6 +274,9 @@ const One_Point = () => {
       <Box padding={3} sx={{ display: "flex", justifyContent: "center" }}>
         <Button variant="contained" onClick={calculateRoot}>
           Calculate
+        </Button>
+        <Button variant="contained" onClick={fetchData}>
+          Random
         </Button>
       </Box>
       <Typography
