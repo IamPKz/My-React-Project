@@ -1,15 +1,8 @@
-import { React, useState, forwardRef, Fragment } from "react";
-import axios from "axios";
+import React, { useState } from "react";
 
-import {
-  Container,
-  TextField,
-  Box,
-  Typography,
-  Button,
-  Paper,
-  Grid,
-} from "@mui/material";
+import { evaluate } from "mathjs";
+import { Line } from "react-chartjs-2";
+import "chart.js/auto";
 
 import {
   Table,
@@ -18,276 +11,201 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  Paper,
+  TextField,
+  Button,
+  Box,
+  Typography,
 } from "@mui/material";
 
-import { TableVirtuoso } from "react-virtuoso";
-import { evaluate } from "mathjs";
-import Plot from "react-plotly.js";
-
-
-const One_Point = () => {
-
-  const [api, setApi] = useState({});
-  const data = [];
-  const [valueIter, setValueIter] = useState([]);
-  const [valueX, setValueX] = useState([]);
-
-  const [html, setHtml] = useState(null);
-  const [Equation, setEquation] = useState("(x^4)-13");
-  const [X, setX] = useState(0);
-
-  const fetchData = () => {
-    axios
-      .get("http://localhost:3000/api/objects/random")
-      .then((response) => {
-        setApi(response.data);
-      })
-      .then(setEquation(api.function))
-      .then(setValueX(api.interval[1]))
-      .catch((error) => console.error(error));
-    console.log(api);
-  };
-
-
-  const columns = [
-    {
-      width: 120,
-      label: "Iteration",
-      dataKey: "iteration",
-    },
-    {
-      width: 120,
-      label: "X",
-      dataKey: "X",
-      numeric: true,
-    }
-  ];
-
-  const VirtuosoTableComponents = {
-    Scroller: forwardRef((props, ref) => (
-      <TableContainer component={Paper} {...props} ref={ref} />
-    )),
-    Table: (props) => (
-      <Table
-        {...props}
-        sx={{ borderCollapse: "separate", tableLayout: "fixed" }}
-      />
-    ),
-    TableHead,
-    TableRow: ({ item: _item, ...props }) => <TableRow {...props} />,
-    TableBody: forwardRef((props, ref) => <TableBody {...props} ref={ref} />),
-  };
-
-  function fixedHeaderContent() {
-    return (
-      <TableRow>
-        {columns.map((column) => (
-          <TableCell
-            key={column.dataKey}
-            variant="head"
-            align={column.numeric || false ? "right" : "left"}
-            style={{ width: column.width }}
-            sx={{
-              backgroundColor: "background.paper",
-            }}
-          >
-            {column.label}
-          </TableCell>
-        ))}
-      </TableRow>
-    );
-  }
-
-  function rowContent(_index, row) {
-    return (
-      <Fragment>
-        {columns.map((column) => (
-          <TableCell
-            key={column.dataKey}
-            align={column.numeric || false ? "right" : "left"}
-          >
-            {row[column.dataKey]}
-          </TableCell>
-        ))}
-      </Fragment>
-    );
-  }
-
-  const print = () => {
-    console.log(data);
-
-    return (
-      <Container>
-        <Paper style={{ height: 400, width: "100%" }}>
-          <TableVirtuoso
-            data={data}
-            components={VirtuosoTableComponents}
-            fixedHeaderContent={fixedHeaderContent}
-            itemContent={rowContent}
-          />
-        </Paper>
-        <Paper>
-          <Box padding={1} sx={{ display: "flex", justifyContent: "center" }}>
-            <Plot
-              data={[
-                {
-                  x: data.map((x) => x.iteration),
-                  y: data.map((x) => x.X),
-                  type: "scattergl",
-                  marker: { color: "red" },
-                },
-              ]}
-              layout={{
-                width: "100%",
-                height: 500,
-                xaxis: {
-                  title: {
-                    text: "Iteration",
-                    font: {
-                      family: "Courier New, monospace",
-                      size: 18,
-                      color: "#7f7f7f",
-                    },
-                  },
-                },
-                yaxis: {
-                  title: {
-                    text: "X",
-                    font: {
-                      family: "Courier New, monospace",
-                      size: 18,
-                      color: "#7f7f7f",
-                    },
-                  },
-                },
-                legend: {
-                  traceorder: "normal",
-                  font: {
-                    family: "sans-serif",
-                    size: 12,
-                    color: "black",
-                  },
-                  bgcolor: "lightgrey",
-                  bordercolor: "grey",
-                  borderwidth: 2,
-                },
-              }}
-            />
-          </Box>
-        </Paper>
-      </Container>
-    );
-  };
-
-  const error = (xold, xnew) => Math.abs((xnew - xold) / xnew) * 100;
-
-  const Calbisection = (x_now) => {
-    var ea,x_before;
-    var iter = 0;
-    var MAX = 4;
-    const e = 0.00001;
-    var obj = {};
-    do {
-        x_before = x_now;
-        x_now = evaluate(Equation,{x:x_before});
-        ea = error(x_before,x_now);
-        iter++;
-
-        obj = {
-            iteration: iter,
-            X: x_now,
-          };
-          data.push(obj);
-      
-    } while (ea > e && iter < MAX);
-
-    setX(x_now);
-    setValueIter(data.map((x) => x.iteration));
-    setValueX(data.map((x) => x.X));
-
-  };
-
-  const inputEquation = (event) => {
-    console.log(event.target.value);
-    setEquation(event.target.value);
-  };
-
-  const inputX = (event) => {
-    console.log(event.target.value);
-    setValueX(event.target.value);
-  };
-
-  const calculateRoot = () => {
-    setX(0);
-    const xnum = parseFloat(X);
-    Calbisection(xnum);
-
-    setHtml(print());
-
-    console.log(valueIter);
-    console.log(valueX);
-
+function IterationChart({ data }) {
+  const chartData = {
+    labels: data.map((row, index) => `${index + 1}`),
+    datasets: [
+      {
+        label: "x",
+        data: data.map((row) => row.x),
+        backgroundColor: "rgba(54, 162, 235, 0.2)",
+        borderColor: "rgba(54, 162, 235, 1)",
+        borderWidth: 1,
+      },
+    ],
   };
 
   return (
-    <Container
-      component="form"
-      sx={{
-        "& .MuiTextField-root": { m: 1, width: "25ch" },
+    <Line
+      data={chartData}
+      options={{
+        scales: {
+          y: {
+            type: "linear",
+            title: {
+              display: true,
+              text: "xm",
+            },
+          },
+          x: {
+            type: "category",
+            title: {
+              display: true,
+              text: "Iteration",
+            },
+          },
+        },
+        plugins: {
+          title: {
+            display: true,
+            text: "Bisection Method Iteration Chart",
+            font: {
+              size: 20,
+            },
+          },
+        },
       }}
-      noValidate
-      autoComplete="off"
-    >
-      <Typography
-        variant="h6"
-        sx={{ display: "flex", justifyContent: "center", color: " #000" }}
-      >
-        False-Position Medthod
-      </Typography>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          p: 1,
-          m: 1,
-          bgcolor: "background.paper",
-          borderRadius: 1,
-        }}
-      >
-        <TextField
-          type="text"
-          value={Equation}
-          label="Equetion"
-          variant="outlined"
-          onChange={inputEquation}
-          required
-        />
-        <TextField
-          type="number"
-          value={valueX}
-          label="X"
-          variant="outlined"
-          onChange={inputX}
-          required
-        />
-      </Box>
-      <Box padding={3} sx={{ display: "flex", justifyContent: "center" }}>
-        <Button variant="contained" onClick={calculateRoot}>
-          Calculate
-        </Button>
-        <Button variant="contained" onClick={fetchData}>
-          Random
-        </Button>
-      </Box>
-      <Typography
-        variant="h6"
-        sx={{ display: "flex", justifyContent: "center", color: " #000" }}
-      >
-        Answer = {X.toPrecision(7)}
-      </Typography>
-      <Box>{html}</Box>
-    </Container>
+    />
   );
-};
+}
 
-export default One_Point;
+function IterationTable({ data }) {
+  return (
+    <TableContainer component={Paper}>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell align="center">Iteration</TableCell>
+            <TableCell align="center">x</TableCell>
+            <TableCell align="center">f(x)</TableCell>
+            <TableCell align="center">g(x)</TableCell>
+            <TableCell align="center">Error</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {data.map((row, index) => (
+            <TableRow key={index}>
+              <TableCell align="center">{index + 1}</TableCell>
+              <TableCell align="center">{row.x.toFixed(6)}</TableCell>
+              <TableCell align="center">{row.fx.toFixed(6)}</TableCell>
+              <TableCell align="center">{row.gx.toFixed(6)}</TableCell>
+              <TableCell align="center">{row.error.toFixed(6)}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
+}
+
+function FixedPointIterationCalculator() {
+  const [func, setFunc] = useState("(1/2)*(25/x+x)");
+  const [initialValue, setInitialValue] = useState(2);
+  const [tolerance, setTolerance] = useState(0.0001);
+  const [maxIterations, setMaxIterations] = useState(20);
+  const [data, setData] = useState([]);
+  const [showTable, setShowTable] = useState(false);
+  const [showChart, setShowChart] = useState(false);
+
+  function handleToggleTable() {
+    setShowTable(!showTable);
+  }
+
+  function handleToggleChart() {
+    setShowChart(!showChart);
+  }
+
+
+  function handleSubmit(e) {
+    e.preventDefault();
+
+    // Define the function to evaluate
+
+    // Initialize the variables
+    let i = 0;
+    let x = initialValue;
+    let error = Number.MAX_VALUE;
+
+    const newData = [];
+
+    // Perform the fixed-point iteration method
+    while (i < maxIterations && error > tolerance) {
+      const gx = evaluate(func, { x: x });
+      error = Math.abs(gx - x);
+      x = gx;
+      i++;
+
+      newData.push({ x, gx, fx: evaluate(func, { x: x }), error });
+    }
+
+    setData(newData);
+    setShowTable(data.length > 0);
+  }
+
+  return (
+    <div>
+      <Box sx={{ maxWidth: 600, mx: "auto" }}>
+        <Typography variant="h4" align="center" gutterBottom>
+          Fixed-Point Iteration Calculator
+        </Typography>
+        <form onSubmit={handleSubmit}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <TextField
+              label="Function"
+              required
+              value={func}
+              onChange={(e) => setFunc(e.target.value)}
+            />
+            <TextField
+              label="Initial Value"
+              required
+              type="number"
+              value={initialValue}
+              onChange={(e) => setInitialValue(e.target.value)}
+            />
+            <TextField
+              label="Tolerance"
+              required
+              type="number"
+              value={tolerance}
+              onChange={(e) => setTolerance(e.target.value)}
+            />
+            <TextField
+              label="Max Iterations"
+              required
+              type="number"
+              value={maxIterations}
+              onChange={(e) => setMaxIterations(e.target.value)}
+            />
+            <Button type="submit" variant="contained" color="primary">
+              Calculate
+            </Button>
+          </Box>
+        </form>
+      </Box>
+      <div>
+        {/* Form component */}
+        {/* Results component */}
+        {data.length > 0 && (
+          <div>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={handleToggleTable}
+            >
+              {showTable ? "Hide Table" : "Show Table"}
+            </Button>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={handleToggleChart}
+            >
+              {showChart ? "Hide Chart" : "Show Chart"}
+            </Button>
+          </div>
+        )}
+        {showTable && <IterationTable data={data} />}
+        {showChart && <IterationChart data={data} />}
+      </div>
+    </div>
+  );
+}
+
+export default FixedPointIterationCalculator;

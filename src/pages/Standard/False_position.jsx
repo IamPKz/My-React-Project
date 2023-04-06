@@ -13,7 +13,6 @@ import {
   TableHead,
   TableRow,
   Paper,
-  
 } from "@mui/material";
 
 function IterationChart({ data }) {
@@ -93,7 +92,7 @@ function IterationTable({ data }) {
   );
 }
 
-function BisectionMethodCalculator() {
+function FalsePositionMethodCalculator() {
   const [func, setFunc] = useState("x^3 - x - 1");
   const [xl, setXl] = useState(1);
   const [xr, setXr] = useState(2);
@@ -134,9 +133,9 @@ function BisectionMethodCalculator() {
   
     const newData = [];
   
-    // Perform the bisection method
+    // Perform the false position method
     while (i < maxIterations && error > tolerance) {
-      xm = (xlVal + xrVal) / 2;
+      xm = xrVal - ((fxr * (xrVal - xlVal)) / (fxr - fxl));
       const fxm = evaluate(func, { x: xm });
       if (fxm === 0) {
         break;
@@ -153,18 +152,14 @@ function BisectionMethodCalculator() {
       newData.push({ xl, xr, xm, fx: fxm, error });
     }
   
-    if (newData.length > 0) {
-      setData(newData);
-      setShowTable(true);
-      setShowChart(true);
-    } else {
-      window.alert("Error: No data to display.");
-    }
+    setData(newData);
+    setShowTable(data.length > 0);
+    setShowChart(data.length > 0);
   }
 
   return (
     <div>
-      <h2>Bisection Method Calculator</h2>
+      <h2>FalsePosition Method Calculator</h2>
       <form onSubmit={handleSubmit}>
         <TextField
           label="Function"
@@ -237,4 +232,4 @@ function BisectionMethodCalculator() {
   );
 }
 
-export default BisectionMethodCalculator;
+export default FalsePositionMethodCalculator;
