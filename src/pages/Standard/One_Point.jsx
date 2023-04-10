@@ -55,7 +55,7 @@ function IterationChart({ data }) {
         plugins: {
           title: {
             display: true,
-            text: "Bisection Method Iteration Chart",
+            text: "Fixed-Point Iteration Chart",
             font: {
               size: 20,
             },
@@ -83,10 +83,10 @@ function IterationTable({ data }) {
           {data.map((row, index) => (
             <TableRow key={index}>
               <TableCell align="center">{index + 1}</TableCell>
-              <TableCell align="center">{row.x.toFixed(6)}</TableCell>
-              <TableCell align="center">{row.fx.toFixed(6)}</TableCell>
-              <TableCell align="center">{row.gx.toFixed(6)}</TableCell>
-              <TableCell align="center">{row.error.toFixed(6)}</TableCell>
+              <TableCell align="center">{row.x}</TableCell>
+              <TableCell align="center">{row.fx}</TableCell>
+              <TableCell align="center">{row.gx}</TableCell>
+              <TableCell align="center">{row.error}</TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -120,20 +120,21 @@ function FixedPointIterationCalculator() {
 
     // Initialize the variables
     let i = 0;
-    let x = initialValue;
+    let gx = initialValue;
+    let x = 0;
     let error = Number.MAX_VALUE;
-
     const newData = [];
 
     // Perform the fixed-point iteration method
-    while (i < maxIterations && error > tolerance) {
-      const gx = evaluate(func, { x: x });
-      error = Math.abs(gx - x);
+    do {
       x = gx;
+      gx = evaluate(func, { x: x });
+
+      error = Math.abs((gx - x)/gx)*100;
       i++;
 
       newData.push({ x, gx, fx: evaluate(func, { x: x }), error });
-    }
+    }while (i < maxIterations && error > tolerance)
 
     setData(newData);
     setShowTable(data.length > 0);

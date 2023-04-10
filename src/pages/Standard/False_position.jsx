@@ -3,7 +3,8 @@ import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import { evaluate } from "mathjs";
 import { Line } from "react-chartjs-2";
-import 'chart.js/auto';
+import "chart.js/auto";
+import axios from "axios";
 
 import {
   Table,
@@ -13,6 +14,7 @@ import {
   TableHead,
   TableRow,
   Paper,
+  Typography,
 } from "@mui/material";
 
 function IterationChart({ data }) {
@@ -94,6 +96,16 @@ function IterationTable({ data }) {
 
 function FalsePositionMethodCalculator() {
   const [func, setFunc] = useState("x^3 - x - 1");
+  const [api, setApi] = useState({
+    id: 8,
+    Function: "x^3 - 6x^2 + 12x - 8",
+    xl: 1,
+    xr: 3,
+    tolerance: 0.0001,
+    maxIterations: 43,
+  });
+
+  const [finalxm, setFinalxm] = useState(0);
   const [xl, setXl] = useState(1);
   const [xr, setXr] = useState(2);
   const [tolerance, setTolerance] = useState(0.0001);
@@ -110,32 +122,47 @@ function FalsePositionMethodCalculator() {
     setShowChart(!showChart);
   }
 
+  const randomdata = () => {
+    axios
+      .get("http://localhost:3000/falseposition/random")
+      .then((response) => {
+        setApi(response.data);
+      })
+      .then(setFunc(api.equation))
+      .then(setXl(api.xl))
+      .then(setXr(api.xr))
+      .then(setTolerance(api.tolerance))
+      .then(setMaxIterations(api.maxIterations))
+      .catch((error) => console.error(error));
+    console.log(api);
+  };
+
   function handleSubmit(e) {
     e.preventDefault();
-  
+
     // Define the function to evaluate
-  
+
     // Initialize the variables
     let i = 0;
     let xm = 0;
     let error = Number.MAX_VALUE;
     let fxl = evaluate(func, { x: xl });
     let fxr = evaluate(func, { x: xr });
-  
+
     let xlVal = xl;
     let xrVal = xr;
-  
+
     // Check if the function has opposite signs at the bounds
     if (fxl * fxr >= 0) {
       window.alert("Error: f(xl) and f(xr) must have opposite signs.");
       return;
     }
-  
+
     const newData = [];
-  
+
     // Perform the false position method
     while (i < maxIterations && error > tolerance) {
-      xm = xrVal - ((fxr * (xrVal - xlVal)) / (fxr - fxl));
+      xm = xrVal - (fxr * (xrVal - xlVal)) / (fxr - fxl);
       const fxm = evaluate(func, { x: xm });
       if (fxm === 0) {
         break;
@@ -148,13 +175,20 @@ function FalsePositionMethodCalculator() {
       }
       error = Math.abs(xrVal - xlVal);
       i++;
-  
+
       newData.push({ xl, xr, xm, fx: fxm, error });
     }
-  
-    setData(newData);
-    setShowTable(data.length > 0);
-    setShowChart(data.length > 0);
+
+    setFinalxm(xm);
+
+    if (newData.length > 0) {
+      setData(newData);
+      setShowTable(true);
+      setShowChart(true);
+    } else {
+      console.log(newData);
+      window.alert("Error: No data to display.");
+    }
   }
 
   return (
@@ -203,26 +237,32 @@ function FalsePositionMethodCalculator() {
         <Button type="submit" variant="contained" color="primary">
           Calculate
         </Button>
+        <Button variant="contained" color="primary" onClick={randomdata}>
+          RandomAPI
+        </Button>
       </form>
       <div>
         {/* Form component */}
         {/* Results component */}
         {data.length > 0 && (
           <div>
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={handleToggleTable}
-            >
-              {showTable ? "Hide Table" : "Show Table"}
-            </Button>
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={handleToggleChart}
-            >
-              {showChart ? "Hide Chart" : "Show Chart"}
-            </Button>
+            <Typography variant="h3">Xm = {finalxm}</Typography>
+            <div>
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={handleToggleTable}
+              >
+                {showTable ? "Hide Table" : "Show Table"}
+              </Button>
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={handleToggleChart}
+              >
+                {showChart ? "Hide Chart" : "Show Chart"}
+              </Button>
+            </div>
           </div>
         )}
         {showTable && <IterationTable data={data} />}

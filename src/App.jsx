@@ -1,5 +1,5 @@
 import { React } from "react";
-
+import './App.css'
 import { Box } from "@mui/material";
 import { BrowserRouter , Routes , Route } from "react-router-dom";
 
@@ -12,6 +12,10 @@ import NewtonRaphson from "./pages/Standard/N-R";
 import SecantMethod from "./pages/Standard/Secant";
 
 import CramerRule from "./pages/Solution_Tech/carmer";
+
+import Regression from "./pages/Standard/Regression";
+import Test from "./pages/Standard/test";
+
 function App() {
   return (
     <BrowserRouter>
